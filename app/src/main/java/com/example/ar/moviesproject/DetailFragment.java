@@ -1,9 +1,5 @@
 package com.example.ar.moviesproject;
 
-/**
- * Created by ar on 24/10/2015.
- */
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -58,12 +54,16 @@ public class DetailFragment extends Fragment {
         TextView ratingView = (TextView) rootView.findViewById(R.id.detail_rating_view);
         TextView synopsisView = (TextView) rootView.findViewById(R.id.detail_synopsis_view);
         TextView releaseView = (TextView) rootView.findViewById(R.id.detail_release_text);
+        TextView placeholderView = (TextView) rootView.findViewById(R.id.detail_placeholder);
         ImageView posterView = (ImageView) rootView.findViewById(R.id.detail_poster_view);
 
         Picasso.with(getContext()).load(m.poster).into(posterView);
         titleView.setText(m.title);
+        titleView.setVisibility(View.VISIBLE);
         synopsisView.setText(m.synopsis);
         ratingView.setText(String.format(getString(R.string.votes),m.vote));
         releaseView.setText(String.format(getString(R.string.released),m.release));
+
+        placeholderView.setVisibility(View.GONE);
     }
 }

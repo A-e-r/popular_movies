@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 
 /**
  * Created by ar on 24/10/2015.
+ * Functionality required by multiple activities. There is probably a better way of doing this.
  */
 public class Utility {
 

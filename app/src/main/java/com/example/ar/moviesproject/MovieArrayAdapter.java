@@ -13,13 +13,13 @@ import java.util.List;
 
 /**
  * Created by ar on 24/10/2015.
+ *
+ * Acts as an Adapter for Movie objects, from the Movie DB
  */
 public class MovieArrayAdapter extends ArrayAdapter<Movie> {
 
-    private static final String LOG_TAG = MovieArrayAdapter.class.getSimpleName();
-
     public MovieArrayAdapter(Activity context, List<Movie> movies){
-        super(context, 0, movies);
+        super(context, 0, movies); //not sure if movies needs to be passed here.
     }
 
     @Override
@@ -34,6 +34,7 @@ public class MovieArrayAdapter extends ArrayAdapter<Movie> {
         Picasso.with(getContext()).load(movie.thumb).into(posterView);
         return  convertView;
     }
+
 
     public void setData(List<Movie> data){
         clear();

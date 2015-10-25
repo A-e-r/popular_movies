@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 
 /**
  * Created by ar on 24/10/2015.
+ * Get option for Popular Movies app.
  */
 public class SettingsActivity extends PreferenceActivity
         implements Preference.OnPreferenceChangeListener {

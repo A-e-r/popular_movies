@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * Created by ar on 25/10/2015.
+ * AsyncTaskLoader for drawing data from TheMovieDB.org and parsing it into suitable Movie objects
  */
 public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
     private static final String LOG_TAG = MovieLoader.class.getSimpleName();
@@ -35,11 +36,12 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
     public List<Movie> loadInBackground() {
         if (DEBUG) Log.v(LOG_TAG, "loadInBackground() Called");
 
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
-        String moviewJsonString = null;
+        HttpURLConnection urlConnection;
+        BufferedReader reader;
+        String movieJsonString;
 
         try{
+            // Get the data from DB using sort_by from settings
             final String MOVIE_BASE_URL = "https://api.themoviedb.org/3/discover/movie?";
             final String SORT_PARAM = "sort_by";
             final String API_PARAM = "api_key";
@@ -57,7 +59,7 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
 
             // Read the input stream into a String
             InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             if (inputStream == null) {
                 // Nothing to do.
                 return null;
@@ -69,22 +71,22 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
                 // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
                 // But it does make debugging a *lot* easier if you print out the completed
                 // buffer for debugging.
-                buffer.append(line + "\n");
+                buffer.append(line).append("\n");
             }
 
             if (buffer.length() == 0) {
                 // Stream was empty.  No point in parsing.
                 return null;
             }
-            moviewJsonString = buffer.toString();
-            Log.v(LOG_TAG, moviewJsonString);
+            movieJsonString = buffer.toString();
+            Log.v(LOG_TAG, movieJsonString);
         } catch (IOException e) {
             Log.e(LOG_TAG, "ERROR", e);
             return null;
         }
 
         try {
-            return getMovieDataFromJSON(moviewJsonString);
+            return getMovieDataFromJSON(movieJsonString);
         } catch (JSONException e){
             Log.e(LOG_TAG, e.getMessage(), e);
         }
@@ -96,12 +98,7 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
     public void deliverResult(List<Movie> data) {
         if (isReset()) {
             if (DEBUG) Log.w(LOG_TAG, "+++ Warning! An async query came in while the Loader was reset! +++");
-            // The Loader has been reset; ignore the result and invalidate the data.
-            // This can happen when the Loader is reset while an asynchronous query
-            // is working in the background. That is, when the background thread
-            // finishes its work and attempts to deliver the results to the client,
-            // it will see here that the Loader has been reset and discard any
-            // resources associated with the new data as necessary.
+
             if (data != null) {
                 releaseResources(data);
                 return;
@@ -129,8 +126,6 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
             deliverResult(mMovies);
         }
 
-        //OBSERVERS!?
-
         if (takeContentChanged()){
             forceLoad();
         } else if (mMovies == null){
@@ -151,9 +146,6 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
             releaseResources(mMovies);
             mMovies = null;
         }
-
-        //STOP OBSERVERS
-
     }
 
     @Override
@@ -185,7 +177,7 @@ public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
         JSONObject movieJson = new JSONObject(movieJsonString);
         JSONArray movieArray = movieJson.getJSONArray(MDB_RESULTS);
 
-        List<Movie> moviesArray = new ArrayList<Movie>(); // Movie DB pages contain 20 elements. Consider making dynamic?
+        List<Movie> moviesArray = new ArrayList<>(); // Movie DB pages contain 20 elements. Consider making dynamic?
         for (int i = 0; i < movieArray.length(); i++){
 
             JSONObject movie = movieArray.getJSONObject(i);

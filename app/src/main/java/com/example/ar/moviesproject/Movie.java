@@ -7,14 +7,15 @@ import android.os.Parcelable;
  * Created by ar on 24/10/2015.
  *
  * Basic representation of a Movie object from the MovieDB
- * Implements parcelable using http://shri.blog.kraya.co.uk/2010/04/26/android-parcel-data-to-pass-between-activities-using-parcelable-classes/
+ * Implements parcelable based on code from:
+ * http://shri.blog.kraya.co.uk/2010/04/26/android-parcel-data-to-pass-between-activities-using-parcelable-classes/
  */
 public class Movie implements Parcelable{
     private static final String POSTER_URL = "http://image.tmdb.org/t/p/";
-    private static final String SMALL_IMAGE = "w342/";
+    private static final String SMALL_IMAGE = "w185/";
     private static final String LARGE_IMAGE = "w780/";
 
-    int id;
+    int id; //Hold over for part 2
     String title;
     String poster;
     String thumb;
@@ -52,7 +53,7 @@ public class Movie implements Parcelable{
         dest.writeDouble(vote);
     }
 
-    public void readFromParcel(Parcel p){
+    private void readFromParcel(Parcel p){
         id = p.readInt();
         title = p.readString();
         poster = p.readString();
