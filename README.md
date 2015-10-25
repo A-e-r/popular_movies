@@ -3,7 +3,8 @@
 
 Project 1 for the [Udacity Android Nanodegree](https://www.udacity.com/course/android-developer-nanodegree--nd801)
 
-The app displays information and advertising material for popular and highly rated movies. It relies on [The Movie DB](https://www.themoviedb.org/) for its data
+The app displays information and advertising material for popular and highly rated movies. It relies on [The Movie DB](https://www.themoviedb.org/) for its data.
+
 To make requests to the API, the app requires a [key](https://www.themoviedb.org/account/signup?language=en) which should be added as a string resource, named `movie_api_key`.
 
 # Requirements
