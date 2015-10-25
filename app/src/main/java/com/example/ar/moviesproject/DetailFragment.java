@@ -41,21 +41,29 @@ public class DetailFragment extends Fragment {
         if (intent != null && intent.hasExtra(Movie.class.getName())) {
             Log.v(LOG_TAG, "Retrieving parcelable");
             Movie m = intent.getExtras().getParcelable(Movie.class.getName());
-
-            TextView titleView = (TextView) rootView.findViewById(R.id.detail_title_view);
-            TextView ratingView = (TextView) rootView.findViewById(R.id.detail_rating_view);
-            TextView synopsisView = (TextView) rootView.findViewById(R.id.detail_synopsis_view);
-            TextView releaseView = (TextView) rootView.findViewById(R.id.detail_release_text);
-            ImageView posterView = (ImageView) rootView.findViewById(R.id.detail_poster_view);
-
-            Picasso.with(getContext()).load(m.poster).into(posterView);
-            titleView.setText(m.title);
-            synopsisView.setText(m.synopsis);
-            ratingView.setText(String.format(getString(R.string.votes),m.vote));
-            releaseView.setText(String.format(getString(R.string.released),m.release));
-
+            updateViews(rootView, m);
+        } else {
+            Bundle b = getArguments();
+            if (b != null){
+                Movie m = b.getParcelable(Movie.class.getName());
+                updateViews(rootView, m);
+            }
         }
 
         return rootView;
+    }
+
+    private void updateViews(View rootView, Movie m){
+        TextView titleView = (TextView) rootView.findViewById(R.id.detail_title_view);
+        TextView ratingView = (TextView) rootView.findViewById(R.id.detail_rating_view);
+        TextView synopsisView = (TextView) rootView.findViewById(R.id.detail_synopsis_view);
+        TextView releaseView = (TextView) rootView.findViewById(R.id.detail_release_text);
+        ImageView posterView = (ImageView) rootView.findViewById(R.id.detail_poster_view);
+
+        Picasso.with(getContext()).load(m.poster).into(posterView);
+        titleView.setText(m.title);
+        synopsisView.setText(m.synopsis);
+        ratingView.setText(String.format(getString(R.string.votes),m.vote));
+        releaseView.setText(String.format(getString(R.string.released),m.release));
     }
 }

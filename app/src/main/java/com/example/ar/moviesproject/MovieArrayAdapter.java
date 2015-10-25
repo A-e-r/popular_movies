@@ -34,4 +34,15 @@ public class MovieArrayAdapter extends ArrayAdapter<Movie> {
         Picasso.with(getContext()).load(movie.thumb).into(posterView);
         return  convertView;
     }
+
+    public void setData(List<Movie> data){
+        clear();
+        if (data != null){
+            for (Movie m : data){
+                add(m);
+            }
+        }
+    }
 }
+
+

@@ -1,12 +1,11 @@
 package com.example.ar.moviesproject;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -29,16 +29,31 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment {
+public class MovieFragment extends Fragment implements LoaderManager.LoaderCallbacks<List<Movie>> {
 
     MovieArrayAdapter mMovieAdapter;
     private ArrayList<Movie> movieList;
+    private int mPosition = GridView.INVALID_POSITION;
+    private GridView mGridView;
+    private static final int LOADER_ID = 0;
+    private static final String SELECTED_KEY = "selected_position";
+    private static final String MOVIE_KEY = "movies";
 
-    public MainActivityFragment() {
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Movie m);
     }
 
     @Override
@@ -46,16 +61,27 @@ public class MainActivityFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        if (savedInstanceState == null || !savedInstanceState.containsKey("movies")){
+        if (savedInstanceState == null || !savedInstanceState.containsKey(MOVIE_KEY)){
             movieList = new ArrayList<Movie>();
         } else {
-            movieList = savedInstanceState.getParcelableArrayList("movies");
+            movieList = savedInstanceState.getParcelableArrayList(MOVIE_KEY);
         }
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(LOADER_ID, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArrayList("movies", movieList);
+        outState.putParcelableArrayList(MOVIE_KEY, movieList);
+
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+
         super.onSaveInstanceState(outState);
     }
 
@@ -72,19 +98,28 @@ public class MainActivityFragment extends Fragment {
         mMovieAdapter = new MovieArrayAdapter(getActivity(), movieList);
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        GridView gridView = (GridView) rootView.findViewById(R.id.gridview);
-        gridView.setAdapter(mMovieAdapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGridView = (GridView) rootView.findViewById(R.id.gridview);
+        mGridView.setAdapter(mMovieAdapter);
+
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l){
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 Movie m = mMovieAdapter.getItem(position);
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                intent.putExtra(Movie.class.getName(), m);
-                startActivity(intent);
-                Toast.makeText(getContext(),m.title,Toast.LENGTH_SHORT).show();
+
+                if (m != null) {
+                    ((Callback) getActivity()).onItemSelected(m);
+                    Toast.makeText(getContext(), m.title, Toast.LENGTH_SHORT).show();
+                }
+                mPosition = position;
+//                Intent intent = new Intent(getActivity(), DetailActivity.class);
+//                intent.putExtra(Movie.class.getName(), m);
+//                startActivity(intent);
             }
         });
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)){
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
 
         return rootView;
     }
@@ -108,10 +143,34 @@ public class MainActivityFragment extends Fragment {
     }
 
     private void updateMovies(){
-        FetchMoviesTask moviesTask = new FetchMoviesTask();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sort_by = prefs.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popularity));
-        moviesTask.execute(sort_by);
+        Loader<List<Movie>> loader = getLoaderManager().getLoader(LOADER_ID);
+        if (loader != null){
+            loader.forceLoad();
+        }
+//        FetchMoviesTask moviesTask = new FetchMoviesTask();
+//        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+//        String sort_by = prefs.getString(getString(R.string.pref_sort_key),getString(R.string.pref_sort_popularity));
+//        moviesTask.execute(sort_by);
+    }
+
+    @Override
+    public Loader<List<Movie>> onCreateLoader(int id, Bundle args) {
+        return new MovieLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> data) {
+        mMovieAdapter.setData(data);
+        if (mPosition != GridView.INVALID_POSITION){
+            mGridView.smoothScrollToPosition(mPosition);
+        }
+
+        //show data?
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<Movie>> loader) {
+        mMovieAdapter.setData(null);
     }
 
     public class FetchMoviesTask extends AsyncTask<String, Void, Movie[]>{
